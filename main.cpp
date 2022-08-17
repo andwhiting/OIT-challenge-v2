@@ -3,6 +3,8 @@
 #include <cctype>
 #include <vector>
 #include <sstream>
+#include <time.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -37,6 +39,28 @@ string goingFirst() {
 	return firstPlayer;
 }
 
+string cpuDiff() {
+	bool isGoodInput = false;
+	string difficulty = "";
+
+	do {
+		difficulty = "";
+		cout << "What level of difficulty should the computer be on?" << endl << "Please type \"easy\" or \"medium\"." << endl;
+		getline(cin, difficulty);
+
+		if (difficulty == "easy" || difficulty == "medium") {
+			isGoodInput = true;
+		}
+
+		if (!isGoodInput) {
+			cout << endl << "Invalid input" << endl << endl;
+		}
+
+	} while (!isGoodInput);
+
+	return difficulty;
+}
+
 //Asks if you will Play again? Checks for valid input.
 string playAgain() {
 	bool isGoodInput = false;
@@ -59,35 +83,45 @@ string playAgain() {
 	return playAgainAnswer;
 }
 
-//Asks for input during the game. Checks for valid input.
-int getValidTurnInput(vector<char> &board) {
-
-	bool isGoodInput = false;
-	int num = 0;
-
-	while (!isGoodInput) {
-		cout << "Please type a number, 1-9 to select where to place your token." << endl;
-		string input = "";
-		getline(cin, input);
-
-		if (input.size() == 1 && isdigit(input[0])) {
-			stringstream ss(input);
-			num = 0;
-			ss >> num;
-		}
-		if (board[num - 1] == input[0]) {
-			isGoodInput = true;
-		}
-		if(!isGoodInput) {
-			cout << endl << "Invalid input" << endl << endl;
+void easyCPU(vector<char>& board) {
+	//Computer's Turn
+	for (int i = 0; i < board.size(); i++) {
+		if (board[i] != 'X' && board[i] != 'O') {
+			board[i] = 'O';
+			break;
 		}
 	}
-	
-	cout << "You selected " << num << endl;
-	return num;
+	cout << "Computer's turn" << endl;
 }
 
-int checkGameOver(vector<char> &board) {
+void mediumCPU(vector<char>& board) {
+	srand(time(0));
+
+	bool isGoodInput = false;
+
+	while (!isGoodInput) {
+		int input = (rand() % 9) + 1;
+
+		stringstream ss;
+		ss << input;
+		string str = ss.str();
+
+		if (board[input - 1] == str[0]) {
+			board[input - 1] = 'O';
+			isGoodInput = true;
+		}
+
+	}
+
+	cout << "Computer's turn" << endl;
+
+}
+
+void HardCPU(vector<char>& board) {
+
+}
+
+int checkGameOver(vector<char>& board) {
 	//Combinations to check for: 123, 456, 789, 147, 258, 369, 159, 357, and all full.
 	bool isGameOver = false;
 	int winner = -1;
@@ -116,6 +150,34 @@ int checkGameOver(vector<char> &board) {
 	return -1;
 }
 
+//Asks for input during the game. Checks for valid input.
+int getValidTurnInput(vector<char>& board) {
+
+	bool isGoodInput = false;
+	int num = 0;
+
+	while (!isGoodInput) {
+		cout << "Please type a number, 1-9 to select where to place your token." << endl;
+		string input = "";
+		getline(cin, input);
+
+		if (input.size() == 1 && isdigit(input[0])) {
+			stringstream ss(input);
+			num = 0;
+			ss >> num;
+		}
+		if (board[num - 1] == input[0]) {
+			isGoodInput = true;
+		}
+		if (!isGoodInput) {
+			cout << endl << "Invalid input" << endl << endl;
+		}
+	}
+
+	cout << "You selected " << num << endl;
+	return num;
+}
+
 void printBoard(vector<char> board) {
 	cout << " " << board[0] << " | " << board[1] << " | " << board[2] << " " << endl;
 	cout << "-----------" << endl;
@@ -126,10 +188,10 @@ void printBoard(vector<char> board) {
 }
 
 /* Returns 0 if player won, returns 1 if computer won, returns a 2 if the game is a tie */
-int playGame(string firstPlayer) {
+int playGame(string firstPlayer, string difficulty) {
 	int winner = -1;
 	bool isGameOver = false;
-	vector<char> board = { '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+	vector<char> board = { '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 
 	printBoard(board);
 	cout << "The computer is O's and the player is X's." << endl;
@@ -153,13 +215,12 @@ int playGame(string firstPlayer) {
 		}
 
 		//Computer's Turn
-		for (int i = 0; i < board.size(); i++) {
-			if (board[i] != 'X' && board[i] != 'O') {
-				board[i] = 'O';
-				break;
-			}
+		if (difficulty == "easy") {
+			easyCPU(board);
 		}
-		cout << "Computer's turn" << endl;
+		if (difficulty == "medium") {
+			mediumCPU(board);
+		}
 		printBoard(board);
 
 		//Check if game is over
@@ -179,12 +240,14 @@ int main() {
 	bool isPlayAgain = false;
 	string firstPlayer = "";
 	string playAgainAnswer = "";
+	string difficulty = "";
 	int winner;
 
 	do {
 		isPlayAgain = false;
 		firstPlayer = goingFirst();
-		winner = playGame(firstPlayer);
+		difficulty = cpuDiff();
+		winner = playGame(firstPlayer, difficulty);
 
 		if (winner == 0) {
 			cout << "Congratulations! You won the game!" << endl;
